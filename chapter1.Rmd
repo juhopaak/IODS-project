@@ -1,7 +1,13 @@
 
 # About the project
 
-*Write a short description about the course and add a link to your GitHub repository here. This is an R Markdown (.Rmd) file so you should use R Markdown syntax.*
+### What do I expect to learn on this course?
+
+I expect to become more fluent with R tools and the data science workflow. This course seems to be a good place to get an all-around grasp of the basic ways of working with data science tools.
+
+### My GitHub repository link
+
+https://github.com/juhopaak/IODS-project
 
 ```{r}
 # This is a so-called "R chunk" where you can write R code.

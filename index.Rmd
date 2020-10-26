@@ -1,5 +1,6 @@
 ---
 title: "IODS course project"
+author: "Juho Pääkkönen"
 output:
   html_document:
     theme: cosmo

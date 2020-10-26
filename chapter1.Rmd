@@ -10,10 +10,5 @@ I expect to become more fluent with R tools and the data science workflow. This 
 https://github.com/juhopaak/IODS-project
 
 ```{r}
-# This is a so-called "R chunk" where you can write R code.
-
 date()
-
 ```
-The text continues here.
-

@@ -80,6 +80,7 @@ Finally, let's examine diagnostic plots of the model.
 par(mfrow =c(2,2))
 plot(model, which=c(1,2,5))
 ```
+
 The model is based on four important assumptions: linearity, constant variance, normality of residuals, and that the model's errors are independent. The plots above can be used to examine the validity of the latter three.
 
 1. The constant variance assumption holds that the size of the model's errors should not depend on the explanatory variable. This assumption can be validated by plotting the residuals (model errors) against fitted values. The assumption is validated if the resulting scatterplot is reasonably evenly distributed. Indeed, we can see from the residuals vs. fitted values plot above that this is the case. 

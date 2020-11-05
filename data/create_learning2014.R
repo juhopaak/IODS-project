@@ -33,8 +33,13 @@ lrn14$stra <- rowMeans(stra_cols)
 # Select columns for the analysis dataset
 lrn14_sub <- select(lrn14, any_of(c("gender","Age","attitude", "deep", "stra", "surf", "Points")))
 
+# Change the names of Age and Points columns
+colnames(lrn14_sub)
+colnames(lrn14_sub)[2] <- "age"
+colnames(lrn14_sub)[7] <- "points"
+
 # Drop rows with zero value in the Points variable
-lrn14_sub <- lrn14_sub[lrn14_sub$Points != 0,]
+lrn14_sub <- filter(lrn14_sub, points > 0)
 
 # Examine data structure
 str(lrn14_sub)

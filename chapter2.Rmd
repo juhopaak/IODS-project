@@ -1,13 +1,91 @@
-# Insert chapter 2 title here
-
-*Describe the work you have done this week and summarize your learning.*
-
-- Describe your work and results clearly. 
-- Assume the reader has an introductory course level understanding of writing and reading R code as well as statistical methods.
-- Assume the reader has no previous knowledge of your data or the more advanced methods you are using.
+# Regression and model validation
 
 ```{r}
 date()
 ```
 
-Here we go again...
+Let's begin by reading the analysis dataset created in the data wrangling part, and exploring its structure and dimensions.
+```{r}
+data <- read.csv("data/learning2014.csv")
+dim(data)
+str(data)
+```
+
+The dataset has 166 observations and 7 variables. The variables are "gender", "age", "attitude", "deep", "stra", "suft", and "points". The observations are student answers to the international survey of Approaches to Learning, on an introductory statistics course in 2014. The attitude variable is a score indicating the student's attitude toward statistics, on scale 1-5. Thee deep, stra, and surf variables are average scores of answers to questions about different approaches to learning (deep learning, strategic learning, and surface learning), measured on the Likert scale. The points variable is an integer representing the student's test score.
+
+Let's continue by looking at summaries of the variables and plotting the data.
+
+```{r}
+summary(data)
+```
+
+We can first see that the student gender distribution includes almost twice the number of females in comparison to males.
+
+The youngest students were 17 years old and the oldest 55 years. The 3rd quartile of age is 27, which means that most of the students are between 17-27 years old. We can also see this in the variable's histogram plot.
+
+```{r}
+hist(data$age)
+```
+
+The attitude variable is distributed between 1.4 and 5, with half of the answers between 2.6 and 3.7. This variable's distribution resembles the normal distribution, as displayed below.
+
+```{r}
+hist(data$attitude)
+```
+
+The deep variable is distributed between 1.583 and 4.917, but the 1st quartile is 3.333, so most of the answers were between 3.333 and 4.917. In the stra variable we see a more even distribution between 1.250 and 5, but still the 1st quartile is 2.625, so most of the values are clustered between 2.625 and 3.625. The surf variable, on the other hand, seems to be somewhat skewed towards lower values, with distribution between 1.583 and 4.333 but the 1st quartile at 2.417. The histograms below confirm these observations.
+
+```{r}
+par(mfrow =c(2,2))
+hist(data$deep)
+hist(data$stra)
+hist(data$surf)
+```
+
+The test points are distributed between 7 and 33, but the 1st quartile is 19, the median 23 and the 3rd quartile 27.75. It seems that the scores are distributed quite evenly between 19 and 27.75. Most of the scores seem to be between 15 and 30, as shown below.
+
+```{r}
+hist(data$points)
+```
+
+Let's next look at a scatter diagram of the data, which displays the relationships between the different variables.
+
+```{r}
+pairs(data[-1], col=data$gender)
+```
+
+From inspecting the scatter diagram it seems that the variables most strongly correlated with points are attitude, stra, and surf. Let's try these three as explanatory variables in the linear model.
+
+```{r}
+model <- lm(points ~ attitude+stra+surf, data = data)
+summary(model)
+```
+
+From the coefficient estimates of different parameters we can see that attitude predicts the value of points with the effect of 3.3952, whereas stra and surf with 0.8531 and -0.5861 respectively. This means that value changes in the attitude parameter are more strongly associated with changes in the value of points. In fact, stra and surf are quite weakly associated with points, which is also reflected in their p-scores, which indicate that these variables do not have a significant relationship (<0.05) to the points variable. A large p-score means that the probability of observing at least as extreme values of the target variable is be high, even though the coefficients were not related to the target variable. The p-values of stra and surf mean that we have no strong evidence on the basis of the data to reject the null hypothesis that stra and surf have no effect on the values of the points variable.
+
+Let's fit the model again with just the attitude as explanatory variable.
+
+```{r}
+model <- lm(points ~ attitude, data = data)
+summary(model)
+```
+
+In this model, the coefficient estimates show that attitude predicts the value of points with the effect of 3.5255, which is slightly stronger than in the previous model. Also the standard error of the coefficient is slightly smaller, and the p-value is notably smaller. The results show that attitude is a highly significant predictor of points.
+
+The multiple R-squared gives the proportion of variation in the target variable points that is explained by the regression coefficients, that is, attitude. We can see that attitude alone explains around 19% of the variation in the points variable.
+
+Finally, let's examine diagnostic plots of the model.
+
+```{r}
+par(mfrow =c(2,2))
+plot(model, which=c(1,2,5))
+```
+The model is based on four important assumptions: linearity, constant variance, normality of residuals, and that the model's errors are independent. The plots above can be used to examine the validity of the latter three.
+
+1. The constant variance assumption holds that the size of the model's errors should not depend on the explanatory variable. This assumption can be validated by plotting the residuals (model errors) against fitted values. The assumption is validated if the resulting scatterplot is reasonably evenly distributed. Indeed, we can see from the residuals vs. fitted values plot above that this is the case. 
+
+2. The normality assumption holds that the model's errors are normally distributed. This assumption can be validated by plotting the residuals against values drawn from the normal distribution. If these values fall roughly along the diagonal line in the Normal Q-Q plot, then the model's errors are approximately normally distributed.
+
+3. The residuals vs. leverage plot helps assess whether there are some observations that have a large influence on the estimation of the model's parameters. If there are some observations that have high leverage, then excluding them from the analysis has a large influence on the model. In the plot, if some points fall within areas delimited by the red dashed line (Cook's distance), then they correspond to influential observations. It seems that in this model there are no highly influential residuals.
+
+Together from these plots we can see that the model's assumptions seem to be valid.

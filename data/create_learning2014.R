@@ -47,8 +47,8 @@ data_dir <- paste(here(), "/data", sep="")
 setwd(data_dir)
 
 # Write analysis dataset to csv and test that it can be read
-write.csv(lrn14_sub, "lrn14.csv", row.names=FALSE)
-lrn14 <- read.csv("lrn14.csv", header=TRUE)
+write.csv(lrn14_sub, "learning2014.csv", row.names=FALSE)
+lrn14 <- read.csv("learning2014.csv", header=TRUE)
 
 str(lrn14)
 head(lrn14)

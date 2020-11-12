@@ -162,4 +162,4 @@ cv <- cv.glm(data = data, cost = loss_func, glmfit = model, K = 10)
 cv$delta[1]
 ```
 
-My model has higher average error with 10-fold cv than the DataCamp model.
+My model has higher average error with 10-fold cv than the DataCamp model. Better than flipping a coin, though.

@@ -408,14 +408,14 @@ summary {
 <h3>My GitHub repository link</h3>
 <p><a href="https://github.com/juhopaak/IODS-project" class="uri">https://github.com/juhopaak/IODS-project</a></p>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Thu Nov 12 20:18:50 2020&quot;</code></pre>
+<pre><code>## [1] &quot;Thu Nov 12 20:26:32 2020&quot;</code></pre>
 <hr />
 </div>
 </div>
 <div id="regression-and-model-validation" class="section level1">
 <h1>2. Regression and model validation</h1>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Thu Nov 12 20:18:50 2020&quot;</code></pre>
+<pre><code>## [1] &quot;Thu Nov 12 20:26:32 2020&quot;</code></pre>
 <p>Let’s begin by reading the analysis dataset created in the data wrangling part, and exploring its structure and dimensions.</p>
 <pre class="r"><code>data &lt;- read.csv(&quot;data/learning2014.csv&quot;)
 dim(data)</code></pre>
@@ -528,7 +528,7 @@ plot(model, which=c(1,2,5))</code></pre>
 <div id="logistic-regression" class="section level1">
 <h1>3. Logistic regression</h1>
 <pre class="r"><code>date()</code></pre>
-<pre><code>## [1] &quot;Thu Nov 12 20:18:51 2020&quot;</code></pre>
+<pre><code>## [1] &quot;Thu Nov 12 20:26:33 2020&quot;</code></pre>
 <p>Let’s begin by reading the joined dataset from local directory.</p>
 <pre class="r"><code>data &lt;- read.csv(&quot;data/alc.csv&quot;)
 dim(data)</code></pre>
@@ -723,8 +723,8 @@ cv &lt;- cv.glm(data = data, cost = loss_func, glmfit = model, K = 10)
 
 # average number of wrong predictions in the cross validation
 cv$delta[1]</code></pre>
-<pre><code>## [1] 0.2984293</code></pre>
-<p>My model has higher average error with 10-fold cv than the DataCamp model.</p>
+<pre><code>## [1] 0.3115183</code></pre>
+<p>My model has higher average error with 10-fold cv than the DataCamp model. Better than flipping a coin, though.</p>
 <hr />
 </div>
 

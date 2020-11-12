@@ -1,0 +1,165 @@
+# 3. Logistic regression
+
+```{r}
+date()
+```
+
+Let's begin by reading the joined dataset from local directory.
+
+```{r}
+data <- read.csv("data/alc.csv")
+dim(data)
+```
+
+As displayed above, the data includes 382 observations and 35 variables. The data are about student achievement in secondary education of two Portuguese schools, collected by using school reports and questionnaires. The data used in this analysis is a combination of two datasets from distinct subjects: Mathematics and Portuguese language. The dataset includes the following variables.
+
+```{r}
+colnames(data)
+```
+
+In this analysis we will study the relationship between high/low alchohol consumption of the students (the variable "high_use"), and four other variables in the data. As the four explanatory variables, let's select
+
+1. The student's age (variable "age")
+2. Weekly study time (variable "studytime")
+3. The number of past class failures (variable "failures")
+4. The quality of family relationships (variable "famrel")
+
+My personal hypothesis is that all these variables will be significantly related to the students' volume of alcohol consumption. In particular, I expect that (1) the older the student and the more time they use for studying, the less likely they are to consume high volumes of alcohol; and (2) students who have had many class failures and have a low quality of family relationships are more likely to consume a lot of alcohol.
+
+Let's next explore the distributions of these four variables and their relationship with alcohol consumption.
+
+Let's first look at bar charts of the four explanatory variables.
+
+```{r}
+par(mfrow =c(2,2))
+hist(data$age)
+hist(data$studytime)
+hist(data$failures)
+hist(data$famrel)
+```
+
+It seems that most of the students are between ages 15-18, and that most of them use less than 5 hours a week for studying. Further, most of them have had no class failures, and their family relations are generally very good.
+
+If we then look at the summary and a boxplot of the students' alcohol use, we see that the means of their answers to daily and weekend alcohol use are distributed between 1 and 5, but the majority of answers are between 1 and 2.5. In fact, it seems that the mean score of 5 is an outlier, as we can see from the boxplot.
+
+```{r}
+summary(data$alc_use)
+```
+
+```{r}
+boxplot(data$alc_use)
+```
+
+If we then look at cross-tabulations of the four explanatory variables and the logical variable representing high/low alcohol use, we see that my initial hypotheses will not be very likely to hold, at least without qualification.
+
+First, from the table of age against alcohol use, we see that the highest ratios of high alcohol use in comparison to low alcohol use are in the age groups of over 16. This means that the older students consume more alcohol than the younger students, contrary to what I expected.
+
+```{r}
+table(data$age, data$high_use)
+```
+
+From the table of study time against alcohol use, we see that indeed students who study less than 5 hours a week seem to consume more alcohol than those who study more.
+
+```{r}
+table(data$studytime, data$high_use)
+```
+
+However, when tabulating past failures against alcohol use, we see that most of the students who have high alcohol consumption have no past failures. This is likely due to the fact that so few students in the data have past failures in the first place.
+
+```{r}
+table(data$failures, data$high_use)
+```
+
+Finally, from the table of family relations against alcohol use, we see that most of the students with high alcohol consumption have good family relations - again likely due to most of the students in the data having good relations. 
+
+```{r}
+table(data$famrel, data$high_use)
+```
+
+Let's now explore the relationship between these variables using logistic regression. The call glm() below fits the model to the alc data. The summary of the model is given after.
+
+```{r}
+model <- glm(high_use ~ age + studytime + failures + famrel, data = data, family = "binomial")
+summary(model)
+```
+
+From the results we can see that two variables in the model are significant predictors of high alcohol use, namely studytime and famrel. Of these, studytime is a highly significant predictor. The sign of the estimates of the coefficients of both these variables are negative. This means that students who study more are less likely to consume high volumes of alcohol, and similarly students who have good family relations are less likely to drink high volumes. Each increase in studytime will decrease the log odds of having high alcohol consumption by 0.5466, and each increase in family relations will decrease the odds by 0.2541.
+
+The results also show that there is no strong evidence for rejecting the null hypothesis that the students' age and past class failures are related to their high/low alcohol consumption.
+
+Let's now compute the odds ratios (OR in the below table) of the model coefficients, and provide confidence intervals for them.
+
+```{r}
+# Odds ratios (OR) from model coefficients
+OR <- exp(coef(model))
+
+# Confidence intervals (CI)
+CI <- exp(confint(model))
+
+# Tabulate results
+cbind(OR, CI)
+```
+
+The coefficient of studytime has odds ratio of ~0.58, which means that students who study more are almost twice as likely to not have high alcohol consumption than students who study less. In the case of famrel, the odds ratio is ~0.78, which means that family relations are not as strongly associated with high consumption as study time. But still students who have good family relations are more likely to have low alcohol consumption than students with good relations. We can also see that student age and past failures are positively related to alcohol consumption, but these variables did not have a significant relationship in the model, so we cannot take this as evidence that there actually exists a relationship in the data.
+
+The confidence intervals give the range of values within which the strength of the relationships between the variables are likely to fall with 95% confidence. So of 100 times that we calculate a confidence interval for e.g. the strenght of the relationship between studytime and high/low alcohol use,  95 times of these the true value will be within the specified range.
+
+For the coefficient estimate of studytime, the 95% confidence interval is (0.42, 0.78), and for famrel (0.60, 0.99). Both of these ranges preserve the direction of the relationship. However, for instance for the failures variable, the interval is (0.91, 1.95). First, this is quite wide, and second we cannot say with 95% for this variable whether having many failures has a positive or negative influence on the log odds of having high alcohol consumption. We can see that the same is true of the age variable, although the interval is not as wide.
+
+These results contradict my initial hypotheses in that age and past failures were not significantly related to high alcohol consumption. Study time and family relations, however, were significantly related, as I expected. Further, study time was a highly significant predictor.
+
+Let's now evaluate the predictive power of these significant explanatory variables. Let's start by fitting a model with just these two variables.
+
+```{r}
+model <- glm(high_use ~ studytime + famrel, data = data, family = "binomial")
+summary(model)
+```
+
+In this model, studytime seems to have an even stronger relationship with alcohol use, while the relationship between famrel and alcohol use remained nearly the same.
+
+Let's now predict the probability of high_use using this model, and tabulate the results.
+
+```{r}
+library(tidyverse)
+
+probabilities <- predict(model, type = "response")
+
+# add the predicted probabilities to data
+data <- mutate(data, probability = probabilities)
+
+# use the probabilities to make a prediction of high_use
+data <- mutate(data, prediction = probability > 0.5)
+
+# tabulate the target variable versus the predictions
+table(high_use = data$high_use, prediction = data$prediction)
+```
+
+From the confusion matrix we can see that the model correctly predicts 265 out of 268 cases of low alcohol, but incorrectly predicts that 109 cases of high alcohol use would have low use. Only 5 out of the total of 114 cases of high use were predicted correctly. Let's compute the training error to see how the model fares overall.
+
+The following code defines mean prediction error as the loss function and calculates for the model's predictions.
+
+```{r}
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+loss_func(class = data$high_use, prob = data$probability)
+```
+
+The mean prediction error is 0.2931937, which means that the model correctly predicts high/low alcohol consumption in over 70% of the cases in the data.
+
+To end this exercise, let's still do 10-fold cross-validation and compare the results with the model introduced in DataCamp (with error of 0.2617801).
+
+```{r}
+# We'll use the package boot for performing cross-validation
+library(boot)
+
+# K=10 means 10 folds
+cv <- cv.glm(data = data, cost = loss_func, glmfit = model, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+```
+
+My model has higher average error with 10-fold cv than the DataCamp model.

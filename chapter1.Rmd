@@ -1,5 +1,5 @@
 
-# About the project
+# 1. About the project
 
 ### What do I expect to learn on this course?
 

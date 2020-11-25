@@ -1,0 +1,100 @@
+# 5. Dimensionality reduction techniques
+
+```{r}
+date()
+```
+
+Let's begin by loading the data and again changing countries as rownames again.
+
+```{r}
+# Read data from local csv
+human <- read.csv("data/human_reduced.csv", header=TRUE)
+
+# Change countries as rownames and drop the redundant column
+rownames(human) <- human$X
+human <- human[2:ncol(human)]
+```
+
+1. Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)
+
+```{r}
+summary(human)
+```
+
+...
+
+```{r}
+library(GGally)
+ggpairs(human, progress=FALSE)
+```
+
+...
+
+```{r}
+library(corrplot)
+corrplot( cor(human) )
+```
+
+2. Perform principal component analysis (PCA) on the not standardized human data. Show the variability captured by the principal components. Draw a biplot displaying the observations by the first two principal components (PC1 coordinate in x-axis, PC2 coordinate in y-axis), along with arrows representing the original variables. (0-2 points)
+
+```{r, warning=FALSE} 
+pca_human <- prcomp(human)
+
+s <- summary(pca_human)
+pca_pr <- round(100*s$importance[2,], digits = 1)
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab=pc_lab[1], ylab=pc_lab[2])
+```
+
+3. Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomenons they relate to. (0-4 points)
+
+```{r}
+human_std <- scale(human)
+
+pca_human <- prcomp(human_std)
+
+s <- summary(pca_human)
+pca_pr <- round(100*s$importance[2,], digits = 1)
+pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
+
+biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab=pc_lab[1], ylab=pc_lab[2])
+```
+
+4. Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
+
+5. Load the tea dataset from the package Factominer. Explore the data briefly: look at the structure and the dimensions of the data and visualize it. Then do Multiple Correspondence Analysis on the tea data (or to a certain columns of the data, it’s up to you). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots. (0-4 points)
+
+```{r}
+library(FactoMineR)
+library(dplyr)
+data("tea")
+
+keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
+tea_time <- dplyr::select(tea, any_of(keep_columns))
+
+str(tea_time)
+```
+
+...
+
+```{r, warning=FALSE}
+library(ggplot2)
+library(tidyverse)
+gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
+```
+
+...
+
+```{r}
+mca <- MCA(tea_time, graph = FALSE)
+summary(mca)
+```
+
+...
+
+```{r}
+plot(mca, invisible=c("ind"), habillage = "quali")
+```
+
+...

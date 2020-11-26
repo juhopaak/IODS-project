@@ -15,41 +15,59 @@ rownames(human) <- human$X
 human <- human[2:ncol(human)]
 ```
 
-1. Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them. (0-3 points)
+Below are summaries of the variables in the data.
 
 ```{r}
 summary(human)
 ```
 
-...
+The observations in the data correspond to different countries, with the following variables:
 
-```{r}
+* `edu_ratio`: Ratio of female to male population with secondary education. The values of this variable are distributed between 0.1717 and 1.4967, with median at 0.9375 and 3rd quantile at 0.9968. It thus seems that the minimumm and maximum values of the variable are outliers.
+* `part_ratio`: Ratio of female to male participation in labour force. This variable is more evenly distributed than `edu_ratio`, between 0.1857 and 1.0380. However, it seems to be somewhat skewed towards the high end.
+* `life_expect`: Life expectancy at birth. This variable is skewed towards high values, with minimum at 49 and maximum at 83.50, and the 1st quantile at 66.30.
+* `edu_expect`: Expected years of education. This variable seems to be quite evenly distributed between 5.40 and 20.20, although the minimum and maximum values might be outliers.
+* `gni`: Gross national income per capita. This variable is distributed on a range betwee 581 and 123124, and is very highly skewed towards the low end, with 3rd quantile only at 24512.
+* `maternal_mortality`: Maternal mortality ratio. Interestingly, the same thing as in the previous case is visible for this variable, with the distributed skewed heavily towards low values.
+* `adol_br`: Adolescent birth rate. This variable is not as heavily skewed as the previous two, but still the minimum is 0.60, maximum is at 204.80, while the 3rd quantile is only 71.95.
+* `repr_percent`: Percent of representation in parliament. The variable varies between 0 and 57,50, with the 3rd quantile at 27.95, and the values thus seem to be somewhat skewed towards the low end.
+
+Let's next look at a visual overview to confirm these observations and to see the relationships between the variables.
+
+```{r, message=FALSE}
 library(GGally)
 ggpairs(human, progress=FALSE)
 ```
 
-...
+We can see from the that the distributions of the variables `edu_ratio`, `part_ratio`, `edu_expect` and `repr_percent` approximate the normal distribution, but the other variables are skewed either to the low or towards the high end. There are many highly significant correlations between the variables. `edu_ratio` is significantly correlated with almost all the other variables, and `life_expect` and `edu_expect` are significantly correlated with all other variables but `part_ratio`. `gni` is also significantly correlated to all other variables except `part_ratio` and `repr_percent`. Finally, `maternal mortality` is significantly correlated with all other variables except `repr_percent`, and `adol_br` is significantly correlated with all other variables except `part_ratio` and `repr_percent`.
+
+We can see these correlations more concisely in the correlation plot below. In fact, it seems that all variables except `part_ratio` and `repr_percent` are correlated either positively or negatively with the rest.
 
 ```{r}
 library(corrplot)
 corrplot( cor(human) )
 ```
 
-2. Perform principal component analysis (PCA) on the not standardized human data. Show the variability captured by the principal components. Draw a biplot displaying the observations by the first two principal components (PC1 coordinate in x-axis, PC2 coordinate in y-axis), along with arrows representing the original variables. (0-2 points)
+Let's next reduce the dimensionality of the data with PCA to get a more manageable representation of these relationships. We'll first try the technique on non-standardized data.
 
-```{r, warning=FALSE} 
+The code below first performs principal component analysis on non-standardized data, then saves a summary of the results in the object `s`, and calculates the percentage of variance explained by the first two principal components. These are saved as labels in the object `pc_lab`. Finally, a biplot is drawn of the PCA results, using the percentages as axis labels.
+
+```{r, warning=FALSE, fig.width=7, fig.cap="PCA biplot 1: Gross National Income of countries vs. all other dimensions"}
+# Perform principal component analysis
 pca_human <- prcomp(human)
 
+# Save summary of the results, calculate percentage of variance explained, and save these as labels
 s <- summary(pca_human)
 pca_pr <- round(100*s$importance[2,], digits = 1)
 pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
 
+# Draw biplot
 biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab=pc_lab[1], ylab=pc_lab[2])
 ```
 
-3. Standardize the variables in the human data and repeat the above analysis. Interpret the results of both analysis (with and without standardizing). Are the results different? Why or why not? Include captions (brief descriptions) in your plots where you describe the results by using not just your variable names, but the actual phenomenons they relate to. (0-4 points)
+We can see from the plot that, with the non-standardized data, the first principal component explains 100% of the variance in the data, and is perfectly correlated with the `gni` variable. This is the same thing as saying that `gni` explains all the variance in the data, which gives us no information about the underlying dimensions of the dataset as a whole. PCA is based on the assumption that variables with larger variance are more important than those with smaller variance. As noted earlier, the `gni` variable has huge variance in the data, with few outliers at the high end distorting the distribution. We can see this also in the biplot, where the length of the arrows representing the variables are proportional to their standard deviations. The arrow for `gni` is very long, which means that this variable in the model now has disproportionate importance in explaining the data. To get around this problem, let's standardize the variables in the data and repeat the analysis.
 
-```{r}
+```{r, fig.width=7, fig.cap="PCA biplot 2: Development rate vs. political system of countries"}
 human_std <- scale(human)
 
 pca_human <- prcomp(human_std)
@@ -61,9 +79,13 @@ pc_lab <- paste0(names(pca_pr), " (", pca_pr, "%)")
 biplot(pca_human, cex = c(0.8, 1), col = c("grey40", "deeppink2"), xlab=pc_lab[1], ylab=pc_lab[2])
 ```
 
-4. Give your personal interpretations of the first two principal component dimensions based on the biplot drawn after PCA on the standardized human data. (0-2 points)
+With the variables standardized, the two first principal components are now able to capture variance in other variables of the data as well. The first component now explains 53.6% of the variance in the data, and the second component 16.2%. We can see from the biplot that the variables `edu_expect`, `edu_ratio`, `gni`, `life_expect`, `maternal mortality`, and `adol_br` are highly correlated with the first principal component, where as the variables `repr_percent` and `part_ratio` are correlated with the second principal component. This corresponds to what we observed earlier that the latter two variables are not highly correlated with the rest of the variables, because the first two PCA dimensions are uncorrelated with each other.
 
-5. Load the tea dataset from the package Factominer. Explore the data briefly: look at the structure and the dimensions of the data and visualize it. Then do Multiple Correspondence Analysis on the tea data (or to a certain columns of the data, it’s up to you). Interpret the results of the MCA and draw at least the variable biplot of the analysis. You can also explore other plotting options for MCA. Comment on the output of the plots. (0-4 points)
+The first principal component is negatively correlated with `edu_expect`, `edu_ratio`, `gni`, and `life_expect`, and positively correlated with `maternal_mortality` and `adol_br`. Variance along this dimension thus seems to capture differences between the countries in terms of life expectancy, education, and per capita income, which also are the composite indicators of the Human Development Index (HDI). Loosely speaking, we could say that PC1 represents difference between "developing" and "developed" countries (a problematic distinction), where countries with high value on the PC1 dimension have high rates of maternal mortality and adolescent births, and low education level, life expectancy, and income indicators. Indeed, countries high on the PC1 dimension include Niger, Chad, Sierra Leone, and Mali, whereas countries low on the dimension include Korea, Japan, Switzerland, and Norway.
+
+The second principal component is positively correlated with both `repr_percent` and `part_ratio`, and thus it seems to capture differences in the political organization of the countries. However this is a somewhat problematic interpretation as the `part_ratio` variable represents the ratio of female to male participation in labour force, which is not straightforwardly an indicator of the countries' political systems. Further, the two variables are not significantly correlated, as we saw earlier. It thus might be that including a third principal component might be better able to represent the dimensionality of the data in terms of these remaining variables. Nevertheless, this dimension seems to say something meaningful about the countries in the data. In particular, countries low on the PC2 dimension include many countries from the North Africa and the Middle East, while countries high on the dimension include Nordic countries, along with countries from Southeastern Africa.
+
+Finally, let's turn to exploring the tea dataset from the package Factominer with Multiple Correspondence Analysis. The code below loads the data and selects a number of its columns for further exploration.
 
 ```{r}
 library(FactoMineR)
@@ -72,11 +94,15 @@ data("tea")
 
 keep_columns <- c("Tea", "How", "how", "sugar", "where", "lunch")
 tea_time <- dplyr::select(tea, any_of(keep_columns))
+```
 
+Let's begin by looking at the dimensions and structure of the data.
+
+```{r}
 str(tea_time)
 ```
 
-...
+The dataset has 300 observations with the 6 variables we selected. All the variables are factors. Let's next visualize the distributions of these variables.
 
 ```{r, warning=FALSE}
 library(ggplot2)
@@ -84,17 +110,29 @@ library(tidyverse)
 gather(tea_time) %>% ggplot(aes(value)) + facet_wrap("key", scales = "free") + geom_bar() + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
 ```
 
-...
+The `how` variable includes information about different methods of preparing tea. The most common one seems to be tea bag, with over 150 observations. By contrast, the `How` variable represents different additions to tea, with the most common one being simple tea alone. The `lunch` variable distinguishes between teatimes, and the `sugar` variable between whether tea is drank with or without sugar. Finally, the `Tea` variable includes information of different tea types, and the `where` variable about where tea is bought.
+
+Let's turn to reducing the dimensionality of these data with MCA. The code below performs MCA on the data with the 6 variables, and gives a summary of the results.
 
 ```{r}
 mca <- MCA(tea_time, graph = FALSE)
 summary(mca)
 ```
 
-...
+From the Eigenvalues table we can see that the first dimension captured by MCA explains ~15.24% of the variance in the data, while the second one explains ~14.23%. The variables `how` and `where` contribute most strongly to both th first and the second dimension, but more strongly to the first. The `sugar` variable contributes to the first dimension, while the `lunch` variable contributes to the second. Finally, the `How` variable contributes more strongly to the second dimension, while the `Tea` variable contributes more strongly to the first.
+
+Let's use the biplot to visualize these variables and their categories to get a better look at their relationships.
 
 ```{r}
-plot(mca, invisible=c("ind"), habillage = "quali")
+plot(mca, choix=c("var"))
 ```
 
-...
+From the plot we can see that the first dimension indeed seems to capture differences between observations in terms of the variables `where` and `how`. However, these variables also contribute strongly to the second dimension as well. Let's look at the categories of the variables more closely to see how they relate to the dimensions and to each other.
+
+```{r}
+plot(mca, invisible=c("ind"), habillage="quali")
+```
+
+From this biplot we can see that the first dimension seems to capture differences in whether tea is drank unpackaged or not, and whether it is bought at a tea shop or a chain store. This dimension thus seems to capture variance in how and where tea is bought, with higher values on the first dimensions corresponding to people who buy tea from specialized shops and prefer to have a wider range of selection to the prepackaged options available in chain stores. Indeed, the categories of tea shop and unpackaged tea are similar to each other in the plot, and the categories of tea bag and chain store resemble each other closely.
+
+The second dimension seems to capture the "style" of tea consumption, with variance in terms of what kind of tea people drink, and whether they like to add milk, lemon, or something else to the beverage. This is also supported by the observation that whether people buy their tea from chain store or the tea shop, and whether they prefer teabags or unpackaged tea seem not to be distinguishing factors on this dimension. The composite factors of these categories are all at the mid-high end of the dimension, so they seem not to distinguish between observations. People on the high end of the second dimension like to add milk, lemon, or "other" stuff to their tea, and perhaps like to drink their tea during lunch. People low on the second dimension like to dring green tea without additions, and perhaps not to do so during lunch.

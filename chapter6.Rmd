@@ -1,0 +1,7 @@
+# 6. Analysis of longitudinal data
+
+```{r}
+date()
+```
+
+...
